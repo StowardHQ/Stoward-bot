@@ -82,8 +82,23 @@ const DiscoveryAPI = {
         method: "POST",
         headers: {
           "x-api-key": apiKey,
+          Accept: "application/json",
         },
       });
+
+      if (!res.ok) {
+        const isJson = res.headers.get("content-type")?.includes("application/json");
+        if (isJson) {
+          const jsonErr = await res.json();
+          return { error: jsonErr.message || "An API error occurred." };
+        } else {
+          const textErr = await res.text();
+          return {
+            error: textErr || `Server returned status code ${res.status}`,
+          };
+        }
+      }
+
       return await res.json();
     } catch (err: any) {
       console.error("Discovery API Error (bumpServer):", err);
