@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-const BASE_URL = "https://api.asraye.com/api";
+const BASE_URL = "http://localhost:4000/api";
 
 export interface ServerListing {
   id: string;
@@ -67,6 +67,41 @@ const DiscoveryAPI = {
     } catch (err: any) {
       console.error("Discovery API Error (addServer):", err);
       return { error: err.message || "Failed to post to discovery server." };
+    }
+  },
+
+  /**
+   * Delist and permanently delete a server from discovery.
+   */
+  deleteServer: async (serverId: string, ownerId: string): Promise<ApiResponse> => {
+    try {
+      const apiKey = process.env.DISCOVERY_API_KEY;
+      if (!apiKey) throw new Error("Missing DISCOVERY_API_KEY environment variable.");
+
+      const res = await fetch(`${BASE_URL}/servers/${serverId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+        },
+        body: JSON.stringify({ owner_id: ownerId }),
+      });
+
+      if (!res.ok) {
+        const isJson = res.headers.get("content-type")?.includes("application/json");
+        if (isJson) {
+          const jsonErr = await res.json();
+          return { error: jsonErr.message || "Failed to delist server." };
+        } else {
+          const textErr = await res.text();
+          return { error: textErr || `Failed with status code ${res.status}` };
+        }
+      }
+
+      return await res.json();
+    } catch (err: any) {
+      console.error("Discovery API Error (deleteServer):", err);
+      return { error: err.message || "Failed to delete server listing." };
     }
   },
 

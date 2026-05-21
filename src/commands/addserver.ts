@@ -7,7 +7,7 @@ const BYPASS_USER_ID = "01H72THN43HSSYMZY81249J6GP";
 export class ServerRegistrationCommands {
   @SimpleCommand({
     name: "addserver",
-    description: "Registers your server to the public discovery listing hub.",
+    description: "Registers your server to Stoward.",
     cooldown: 10000,
   })
   async addServer(ctx: CommandContext) {
