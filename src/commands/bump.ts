@@ -15,9 +15,9 @@ export class ServerListingCommands {
     }
 
     const successText =
-      "Your server has been pushed higher in our listing.\n\n" +
-      "If you want any update notifications, have a suggestion or find a bug - " +
-      "Make sure to join our support server! https://stt.gg/YdbvBN6q";
+      "Your server has been boosted higher on https://stoward.space!\n\n" +
+      "Want update notifications, to report a bug, or share suggestions?\n" +
+      "Join our support server: https://stt.gg/YdbvBN6q";
 
     try {
       const response = await api.bumpServer(serverId);
