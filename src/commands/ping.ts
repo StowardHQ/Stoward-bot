@@ -43,16 +43,18 @@ export class GeneralCommands {
       ].join("\n");
 
       const successEmbed = new EmbedBuilder()
-        .setColor("#4DB6AC") 
+        .setColor("#4DB6AC")
         .setTitle("🛰️ Stoward Information")
         .setDescription(embedDescription);
 
-      return await reply.edit({ content: "\u200B", embeds: [successEmbed.toJSON()] }).catch(async (err) => {
-        if (err.toString().includes("403") || err.toString().includes("50013")) {
-          return reply.edit({ content: plainTextFallback, embeds: [] });
-        }
-        throw err;
-      });
+      return await reply
+        .edit({ content: "\u200B", embeds: [successEmbed.toJSON()] })
+        .catch(async (err) => {
+          if (err.toString().includes("403") || err.toString().includes("50013")) {
+            return reply.edit({ content: plainTextFallback, embeds: [] });
+          }
+          throw err;
+        });
     } catch (err: any) {
       console.error("Info compilation failed:", err.message);
 
@@ -64,12 +66,14 @@ export class GeneralCommands {
         .setTitle("Database Connection Error")
         .setDescription(errorDescription);
 
-      return await reply.edit({ content: "\u200B", embeds: [failureEmbed.toJSON()] }).catch(async (err) => {
-        if (err.toString().includes("403") || err.toString().includes("50013")) {
-          return reply.edit({ content: errorFallback, embeds: [] });
-        }
-        throw err;
-      });
+      return await reply
+        .edit({ content: "\u200B", embeds: [failureEmbed.toJSON()] })
+        .catch(async (err) => {
+          if (err.toString().includes("403") || err.toString().includes("50013")) {
+            return reply.edit({ content: errorFallback, embeds: [] });
+          }
+          throw err;
+        });
     }
   }
 }
