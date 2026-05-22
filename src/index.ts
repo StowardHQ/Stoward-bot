@@ -1,7 +1,7 @@
 import { SweeperManager, UserPresence } from "@stoatx/client";
 import "dotenv/config";
 import "reflect-metadata";
-import { Client, On, Stoat } from "stoatx";
+import { Client } from "stoatx";
 import api, { type PlatformStats } from "./utils/api.js";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -23,56 +23,36 @@ const client = new Client({
   extensions: isProduction ? [".js"] : [".ts"],
 });
 
-const sweepers = new SweeperManager(client, {
-  messages: {
-    lifetime: 3600000,
-    interval: 600000,
-  },
-});
+let sweepers: SweeperManager;
 
-@Stoat()
-export class LifecycleManager {
-  private async updateDiscoveryPresence(): Promise<void> {
-    try {
-      const stats = await api.getStats();
+async function updateDiscoveryPresence(): Promise<void> {
+  try {
+    const stats = await api.getStats();
 
-      if ("error" in stats && stats.error) {
-        throw new Error(stats.error);
-      }
-
-      const data = stats as PlatformStats;
-      const serverCount = data.total_servers;
-      const totalMembers = data.total_members;
-
-      if (client.user) {
-        client.user.status = {
-          text: `Watching ${serverCount} servers with ${totalMembers.toLocaleString()} members! 🛰️`,
-          presence: UserPresence.Online,
-        };
-      }
-    } catch (err: any) {
-      console.error("Presence Sync Failed:", err.message);
-      if (client.user) {
-        client.user.status = {
-          text: "Offline 📡",
-          presence: UserPresence.Busy,
-        };
-      }
+    if ("error" in stats && stats.error) {
+      throw new Error(stats.error);
     }
-  }
 
-  @On("ready")
-  async onReady() {
-    console.log("Bot is ready!");
-    sweepers.start();
+    const data = stats as PlatformStats;
+    const serverCount = data.total_servers;
+    const totalMembers = data.total_members;
 
-    await this.updateDiscoveryPresence();
-    setInterval(() => void this.updateDiscoveryPresence(), 10 * 60 * 1000);
-  }
+    console.log(`📊 Servers: ${serverCount} | Members: ${totalMembers.toLocaleString()}`);
 
-  @On("error")
-  onError(error: Error) {
-    console.error("Bot encountered a client-side error:", error);
+    if (client.user) {
+      client.user.status = {
+        text: `Watching ${serverCount} servers with ${totalMembers.toLocaleString()} members! 🛰️`,
+        presence: UserPresence.Online,
+      };
+    }
+  } catch (err: any) {
+    console.error("Presence Sync Failed:", err.message);
+    if (client.user) {
+      client.user.status = {
+        text: "Offline 📡",
+        presence: UserPresence.Busy,
+      };
+    }
   }
 }
 
@@ -82,6 +62,22 @@ async function start() {
     console.log("Commands loaded");
 
     await client.login(token!);
+    console.log("Bot is ready!");
+
+    sweepers = new SweeperManager(client, {
+      messages: {
+        lifetime: 3600000,
+        interval: 600000,
+      },
+    });
+    sweepers.start();
+
+    await updateDiscoveryPresence();
+    setInterval(() => void updateDiscoveryPresence(), 10 * 60 * 1000);
+
+    client.on("error", (error: Error) => {
+      console.error("Bot encountered a client-side error:", error);
+    });
   } catch (error) {
     console.error("Fatal error during startup:", error);
     process.exit(1);
