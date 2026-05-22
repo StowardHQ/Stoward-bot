@@ -2,7 +2,7 @@ import { SweeperManager, UserPresence } from "@stoatx/client";
 import "dotenv/config";
 import "reflect-metadata";
 import { Client, On, Stoat } from "stoatx";
-import api from "./utils/api.js";
+import api, { type PlatformStats } from "./utils/api.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -34,17 +34,21 @@ const sweepers = new SweeperManager(client, {
 export class LifecycleManager {
   private async updateDiscoveryPresence(): Promise<void> {
     try {
-      const servers = await api.getServers();
-      if (Array.isArray(servers)) {
-        const totalMembers = servers.reduce((acc, s) => acc + (s.members || 0), 0);
-        const serverCount = servers.length;
+      const stats = await api.getStats();
 
-        if (client.user) {
-          client.user.status = {
-            text: `Watching ${serverCount} servers with ${totalMembers.toLocaleString()} members! 🛰️`,
-            presence: UserPresence.Online,
-          };
-        }
+      if ("error" in stats && stats.error) {
+        throw new Error(stats.error);
+      }
+
+      const data = stats as PlatformStats;
+      const serverCount = data.total_servers;
+      const totalMembers = data.total_members;
+
+      if (client.user) {
+        client.user.status = {
+          text: `Watching ${serverCount} servers with ${totalMembers.toLocaleString()} members! 🛰️`,
+          presence: UserPresence.Online,
+        };
       }
     } catch (err: any) {
       console.error("Presence Sync Failed:", err.message);

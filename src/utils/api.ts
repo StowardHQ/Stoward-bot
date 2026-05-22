@@ -11,6 +11,11 @@ export interface ServerListing {
   [key: string]: any;
 }
 
+export interface PlatformStats {
+  total_servers: number;
+  total_members: number;
+}
+
 export interface ApiResponse {
   error?: string;
   success?: boolean;
@@ -21,6 +26,19 @@ export interface BumpResponse extends ApiResponse {
 }
 
 const DiscoveryAPI = {
+  /**
+   * Fetch statistics
+   */
+  getStats: async (): Promise<PlatformStats | ApiResponse> => {
+    try {
+      const res = await fetch(`${BASE_URL}/stats`);
+      return await res.json();
+    } catch (err) {
+      console.error("Discovery API Error (getStats):", err);
+      return { error: "Failed to fetch platform statistics." };
+    }
+  },
+
   /**
    * Fetch all server listings
    */
