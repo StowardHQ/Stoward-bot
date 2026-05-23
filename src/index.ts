@@ -39,24 +39,20 @@ async function updateDiscoveryPresence(): Promise<void> {
 
     console.log(`📊 Servers: ${serverCount} | Members: ${totalMembers.toLocaleString()}`);
 
-    if (client.user) {
-      await client.users.editMe({
-        status: {
-          text: `Watching ${serverCount} servers with ${totalMembers.toLocaleString()} members! 🛰️`,
-          presence: UserPresence.Online,
-        },
-      });
-    }
+    await client.users.editMe({
+      status: {
+        text: `Watching ${serverCount} servers with ${totalMembers.toLocaleString()} members! 🛰️`,
+        presence: UserPresence.Online,
+      },
+    });
   } catch (err: any) {
     console.error("Presence Sync Failed:", err.message);
-    if (client.user) {
-      await client.users.editMe({
-        status: {
-          text: "Offline 📡",
-          presence: UserPresence.Busy,
-        },
-      });
-    }
+    await client.users.editMe({
+      status: {
+        text: "Offline 📡",
+        presence: UserPresence.Busy,
+      },
+    });
   }
 }
 
