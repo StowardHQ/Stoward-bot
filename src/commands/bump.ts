@@ -14,11 +14,6 @@ export class ServerListingCommands {
       return ctx.message.reply("❌ This command must be used within a server.");
     }
 
-    const successText =
-      "Your server has been boosted higher on https://stoward.space!\n\n" +
-      "Want update notifications, to report a bug, or share suggestions?\n" +
-      "Join our support server: https://stt.gg/YdbvBN6q";
-
     try {
       const response = await api.bumpServer(serverId);
 
@@ -35,6 +30,11 @@ export class ServerListingCommands {
           throw err;
         });
       }
+
+      const successText =
+        `Your server has been boosted higher on Stoward! You can find your listing here: https://stoward.space/server/${serverId} !\n\n` +
+        "Want update notifications, to report a bug, or share suggestions?\n" +
+        "Join our support server: https://stt.gg/YdbvBN6q";
 
       const successEmbed = new EmbedBuilder()
         .setColor("#2ECC71")
