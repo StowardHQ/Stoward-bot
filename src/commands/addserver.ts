@@ -37,11 +37,13 @@ export class ServerRegistrationCommands {
     try {
       const inviteCode = inviteInput.split("/").pop();
       if (!inviteCode) throw new Error("Invalid invite link format.");
-      
+
       const platformResponse = await fetch(`https://stoat.chat/api/invites/${inviteCode}`);
 
       if (!platformResponse.ok) {
-        return processingMessage.edit("❌ **Error:** That invite code was not found or has expired.");
+        return processingMessage.edit(
+          "❌ **Error:** That invite code was not found or has expired.",
+        );
       }
 
       const inviteData = await platformResponse.json();
@@ -75,7 +77,7 @@ export class ServerRegistrationCommands {
         const nsfwResponse = await api.setNsfw(server.id, true);
         if ("error" in nsfwResponse && nsfwResponse.error) {
           return processingMessage.edit(
-            `⚠️ **Server registered, but NSFW flag failed to set:** ${nsfwResponse.error}`
+            `⚠️ **Server registered, but NSFW flag failed to set:** ${nsfwResponse.error}`,
           );
         }
       }
@@ -85,14 +87,16 @@ export class ServerRegistrationCommands {
         .setTitle(isNsfwDetected ? "🔞 Success!" : "✨ Success!")
         .setDescription(
           `**${server.name}** has been successfully registered and is now live on our site!` +
-          (isNsfwDetected ? `\n\n*Note: This listing has been flagged as NSFW.*` : "")
+            (isNsfwDetected ? `\n\n*Note: This listing has been flagged as NSFW.*` : ""),
         );
 
       const successText = [
         isNsfwDetected ? "🔞 **Success!**" : "✨ **Success!**",
         `**${server.name}** has been successfully registered and is now live on our site!`,
         isNsfwDetected ? `*Note: This listing has been flagged as NSFW.*` : "",
-      ].filter(Boolean).join("\n");
+      ]
+        .filter(Boolean)
+        .join("\n");
 
       return await processingMessage
         .edit({ content: "‎", embeds: [successEmbed.toJSON()] })
@@ -102,7 +106,6 @@ export class ServerRegistrationCommands {
           }
           throw err;
         });
-
     } catch (err) {
       console.error("Server Registration Fatal Error:", err);
       return processingMessage.edit("❌ **Error:** Failed to connect to backend.");

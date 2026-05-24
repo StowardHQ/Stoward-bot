@@ -194,7 +194,6 @@ const DiscoveryAPI = {
       return { error: err.message || "Failed to update NSFW flag." };
     }
   },
-
 };
 
 export default DiscoveryAPI;

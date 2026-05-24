@@ -23,17 +23,17 @@ export class ServerEditCommands {
 
     const input = ctx.args[0];
     const fullMessageText = ctx.message.content?.toLowerCase() || "";
-    
+
     const wantsNsfw = fullMessageText.includes("nsfw");
     const wantsSfw = fullMessageText.includes("sfw");
 
     if (!input && !wantsNsfw && !wantsSfw) {
       return ctx.message.reply(
         `ℹ️ **Usage:** \`${ctx.prefix}editserver [invite_link] [nsfw / sfw]\`\n` +
-        `*Examples:*\n` +
-        `• \`${ctx.prefix}editserver nsfw\`\n` +
-        `• \`${ctx.prefix}editserver sfw\`\n` +
-        `• \`${ctx.prefix}editserver stoat.chat/invite/xyz sfw\``
+          `*Examples:*\n` +
+          `• \`${ctx.prefix}editserver nsfw\`\n` +
+          `• \`${ctx.prefix}editserver sfw\`\n` +
+          `• \`${ctx.prefix}editserver stoat.chat/invite/xyz sfw\``,
       );
     }
 
@@ -49,7 +49,7 @@ export class ServerEditCommands {
 
         if (platformResponse.ok) {
           const inviteData = await platformResponse.json();
-          
+
           if (inviteData.server_id === server.id) {
             const iconId = inviteData.server_icon?._id;
             const bannerId = inviteData.server_banner?._id;
@@ -59,7 +59,9 @@ export class ServerEditCommands {
               server_name: server.name,
               invite_link: `https://stoat.chat/invite/${inviteCode}`,
               members: inviteData.member_count || 0,
-              icon_url: iconId ? `https://cdn.stoatusercontent.com/icons/${iconId}?max_side=256` : null,
+              icon_url: iconId
+                ? `https://cdn.stoatusercontent.com/icons/${iconId}?max_side=256`
+                : null,
               banner_url: bannerId ? `https://cdn.stoatusercontent.com/banners/${bannerId}` : null,
             };
             inviteUpdated = true;
@@ -85,7 +87,7 @@ export class ServerEditCommands {
 
       const changesList = [
         inviteUpdated ? "✅ New invite link applied" : null,
-        ratingUpdatedMessage
+        ratingUpdatedMessage,
       ].filter(Boolean);
 
       const successEmbed = new EmbedBuilder()
@@ -94,7 +96,7 @@ export class ServerEditCommands {
         .setDescription(
           changesList.length > 0
             ? `Successfully updated **${server.name}**:\n\n${changesList.join("\n")}`
-            : `Successfully refreshed listing data for **${server.name}**.`
+            : `Successfully refreshed listing data for **${server.name}**.`,
         );
 
       const successText = [
@@ -102,7 +104,7 @@ export class ServerEditCommands {
         "",
         changesList.length > 0
           ? `Successfully updated **${server.name}**:\n\n${changesList.join("\n")}`
-          : `Successfully refreshed listing data for **${server.name}**.`
+          : `Successfully refreshed listing data for **${server.name}**.`,
       ].join("\n");
 
       return await processingMessage
@@ -113,7 +115,6 @@ export class ServerEditCommands {
           }
           throw err;
         });
-        
     } catch (err) {
       console.error("Server Edit Error:", err);
       return processingMessage.edit("❌ **Error:** Failed to save changes.");
