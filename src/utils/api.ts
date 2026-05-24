@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "dotenv/config";
 
 const BASE_URL = "http://localhost:4000/api";
@@ -158,6 +159,42 @@ const DiscoveryAPI = {
       return { error: err.message || "Failed to bump server." };
     }
   },
+
+  /**
+   * Set the NSFW status of a server
+   */
+  setNsfw: async (serverId: string, nsfw: boolean): Promise<ApiResponse> => {
+    try {
+      const apiKey = process.env.DISCOVERY_API_KEY;
+      if (!apiKey) throw new Error("Missing DISCOVERY_API_KEY environment variable.");
+
+      const res = await fetch(`${BASE_URL}/servers/${serverId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+        },
+        body: JSON.stringify({ is_nsfw: nsfw ? 1 : 0 }),
+      });
+
+      if (!res.ok) {
+        const isJson = res.headers.get("content-type")?.includes("application/json");
+        if (isJson) {
+          const jsonErr = await res.json();
+          return { error: jsonErr.message || "Failed to update server properties." };
+        } else {
+          const textErr = await res.text();
+          return { error: textErr || `Server returned status code ${res.status}` };
+        }
+      }
+
+      return await res.json();
+    } catch (err: any) {
+      console.error("Discovery API Error (setNsfw):", err);
+      return { error: err.message || "Failed to update NSFW flag." };
+    }
+  },
+
 };
 
 export default DiscoveryAPI;

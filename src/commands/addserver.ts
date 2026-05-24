@@ -19,7 +19,7 @@ export class ServerRegistrationCommands {
     }
 
     if (!inviteInput) {
-      return ctx.message.reply(`❌ Usage: \`${ctx.prefix}addserver <invite_link>\``);
+      return ctx.message.reply(`❌ Usage: \`${ctx.prefix}addserver <invite_link> [nsfw]\``);
     }
 
     const authorId = ctx.message.authorId;
@@ -27,19 +27,21 @@ export class ServerRegistrationCommands {
       return ctx.message.reply("⛔ Only the server owner can register this server.");
     }
 
+    const fullMessageText = ctx.message.content?.toLowerCase() || "";
+    const isNsfwDetected = fullMessageText.includes("nsfw");
+
     const processingMessage = await ctx.message.reply(
-      "🛰️ Fetching server data and validating invite link...",
+      `🛰️ Fetching server data and validating invite link${isNsfwDetected ? " [NSFW]" : ""}...`,
     );
 
     try {
       const inviteCode = inviteInput.split("/").pop();
       if (!inviteCode) throw new Error("Invalid invite link format.");
+      
       const platformResponse = await fetch(`https://stoat.chat/api/invites/${inviteCode}`);
 
       if (!platformResponse.ok) {
-        return processingMessage.edit(
-          "❌ **Error:** That invite code was not found or has expired.",
-        );
+        return processingMessage.edit("❌ **Error:** That invite code was not found or has expired.");
       }
 
       const inviteData = await platformResponse.json();
@@ -69,15 +71,38 @@ export class ServerRegistrationCommands {
         return processingMessage.edit(`❌ **Backend Error:** ${backendResponse.error}`);
       }
 
+      if (isNsfwDetected) {
+        const nsfwResponse = await api.setNsfw(server.id, true);
+        if ("error" in nsfwResponse && nsfwResponse.error) {
+          return processingMessage.edit(
+            `⚠️ **Server registered, but NSFW flag failed to set:** ${nsfwResponse.error}`
+          );
+        }
+      }
+
       const successEmbed = new EmbedBuilder()
-        .setColor("#2ECC71")
-        .setTitle("✨ Success!")
+        .setColor(isNsfwDetected ? "#E74C3C" : "#2ECC71")
+        .setTitle(isNsfwDetected ? "🔞 Success!" : "✨ Success!")
         .setDescription(
-          `**${server.name}** has been successfully registered and is now live on our site!`,
+          `**${server.name}** has been successfully registered and is now live on our site!` +
+          (isNsfwDetected ? `\n\n*Note: This listing has been flagged as NSFW.*` : "")
         );
 
-      await processingMessage.delete();
-      return ctx.message.reply({ embeds: [successEmbed.toJSON()] });
+      const successText = [
+        isNsfwDetected ? "🔞 **Success!**" : "✨ **Success!**",
+        `**${server.name}** has been successfully registered and is now live on our site!`,
+        isNsfwDetected ? `*Note: This listing has been flagged as NSFW.*` : "",
+      ].filter(Boolean).join("\n");
+
+      return await processingMessage
+        .edit({ content: "‎", embeds: [successEmbed.toJSON()] })
+        .catch(async (err) => {
+          if (err.toString().includes("403") || err.toString().includes("50013")) {
+            return processingMessage.edit({ content: successText, embeds: [] });
+          }
+          throw err;
+        });
+
     } catch (err) {
       console.error("Server Registration Fatal Error:", err);
       return processingMessage.edit("❌ **Error:** Failed to connect to backend.");
