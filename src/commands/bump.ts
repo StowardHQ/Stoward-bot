@@ -1,6 +1,8 @@
 import { type CommandContext, EmbedBuilder, SimpleCommand, Stoat } from "stoatx";
 import api from "../utils/api.js";
 
+const BUMP_FEED_CHANNEL_ID = "01KSFSAV0N5NR0806EEG2KV0A9";
+
 @Stoat()
 export class ServerListingCommands {
   @SimpleCommand({
@@ -40,6 +42,31 @@ export class ServerListingCommands {
         .setColor("#2ECC71")
         .setTitle("🚀 Bump Successful!")
         .setDescription(successText);
+
+      try {
+        const feedEmbed = new EmbedBuilder()
+          .setColor("#3498DB")
+          .setTitle("🔥 Server Bumped!")
+          .setDescription(
+            `**${ctx.message.server?.name || "A server"}** has just bumped their listing!\n\n` +
+              `🔗 [View Listing Page](https://stoward.space/server/${serverId})`,
+          );
+
+        let targetChannel = ctx.client.channels.cache.get(BUMP_FEED_CHANNEL_ID);
+        if (!targetChannel) {
+          targetChannel = await ctx.client.channels.fetch(BUMP_FEED_CHANNEL_ID);
+        }
+
+        if (
+          targetChannel &&
+          targetChannel.messages &&
+          typeof targetChannel.messages.send === "function"
+        ) {
+          await targetChannel.messages.send({ embeds: [feedEmbed.toJSON()] });
+        }
+      } catch (feedErr) {
+        console.error("Failed to send to bump feed channel:", feedErr);
+      }
 
       return await ctx.message.reply({ embeds: [successEmbed.toJSON()] }).catch(async (err) => {
         if (err.toString().includes("403")) {

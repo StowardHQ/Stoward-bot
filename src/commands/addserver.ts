@@ -2,6 +2,7 @@ import { type CommandContext, EmbedBuilder, SimpleCommand, Stoat } from "stoatx"
 import api from "../utils/api.js";
 
 const BYPASS_USER_ID = "01H72THN43HSSYMZY81249J6GP";
+const REGISTRATION_FEED_CHANNEL_ID = "01KSFSAYM21FF6T5J8GA9K0GT8";
 
 @Stoat()
 export class ServerRegistrationCommands {
@@ -80,6 +81,32 @@ export class ServerRegistrationCommands {
             `⚠️ **Server registered, but NSFW flag failed to set:** ${nsfwResponse.error}`,
           );
         }
+      }
+
+      try {
+        const feedEmbed = new EmbedBuilder()
+          .setColor(isNsfwDetected ? "#E74C3C" : "#2ECC71")
+          .setTitle(isNsfwDetected ? "🔞 New Server Registered!" : "✨ New Server Registered!")
+          .setDescription(
+            `**${server.name}** has just joined Stoward!\n\n` +
+              `**Description:**\n${finalData.description}\n\n` +
+              `🔗 [View Listing Page](https://stoward.space/server/${server.id})`,
+          );
+
+        let targetChannel = ctx.client.channels.cache.get(REGISTRATION_FEED_CHANNEL_ID);
+        if (!targetChannel) {
+          targetChannel = await ctx.client.channels.fetch(REGISTRATION_FEED_CHANNEL_ID);
+        }
+
+        if (
+          targetChannel &&
+          targetChannel.messages &&
+          typeof targetChannel.messages.send === "function"
+        ) {
+          await targetChannel.messages.send({ embeds: [feedEmbed.toJSON()] });
+        }
+      } catch (feedErr) {
+        console.error("Failed to send to registration feed channel:", feedErr);
       }
 
       const successEmbed = new EmbedBuilder()
