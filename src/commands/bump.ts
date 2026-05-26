@@ -34,7 +34,7 @@ export class ServerListingCommands {
       }
 
       const successText =
-        `Your server has been boosted higher on Stoward! You can find your listing here: https://stoward.space/server/${serverId} !\n\n` +
+        `Your server has been boosted higher on Stoward! Check it out [here](https://stoward.space/server/${serverId})!\n\n` +
         "Want update notifications, to report a bug, or share suggestions?\n" +
         "Join our support server: https://stt.gg/YdbvBN6q";
 
